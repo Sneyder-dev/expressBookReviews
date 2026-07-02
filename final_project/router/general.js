@@ -3,6 +3,7 @@ let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
+const axios = require('axios');
 
 
 public_users.post("/register", (req,res) => {
@@ -28,6 +29,35 @@ public_users.post("/register", (req,res) => {
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
     res.send(JSON.stringify(books, null, 4));
+});
+
+// Get all books using Promise callbacks
+public_users.get('/promise/books', function (req, res) {
+    const fetchBooks = new Promise((resolve, reject) => {
+        if (books) {
+            resolve(books);  // resolve with books data
+        } else {
+            reject("No books found!"); // reject if no books
+        }
+    });
+
+    fetchBooks
+        .then((data) => {
+            res.send(JSON.stringify(data, null, 4)); // send books
+        })
+        .catch((err) => {
+            res.status(404).json({ message: err }); // send error
+        });
+});
+
+// Get all books using Async-Await with Axios
+public_users.get('/async/books', async function (req, res) {
+    try {
+        const response = await axios.get('http://localhost:5000/');
+        res.send(JSON.stringify(response.data, null, 4)); // send books
+    } catch (err) {
+        res.status(404).json({ message: "Error fetching books!", error: err.message }); // ❌ send error
+    }
 });
 
 // Get book details based on ISBN
